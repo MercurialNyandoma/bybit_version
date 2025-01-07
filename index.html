@@ -21,15 +21,19 @@
 
             // Время запроса для подписи
             const timestamp = Math.floor(Date.now() / 1000);
+            console.log('[INFO] Timestamp:', timestamp);
             
             // Формируем параметры запроса
             const params = `api_key=${apiKey}&timestamp=${timestamp}`;
+            console.log('[INFO] Formatted Params:', params);
             
             // Генерация подписи с использованием CryptoJS (HMAC-SHA256)
             const sign = generateSignature(params, apiSecret);
+            console.log('[INFO] Generated Signature:', sign);
 
             // Сформированный URL запроса
             const requestUrl = `${url}?${params}&sign=${sign}`;
+            console.log('[INFO] Request URL:', requestUrl);
 
             try {
                 const response = await fetch(requestUrl, {
@@ -40,15 +44,19 @@
                 });
 
                 const data = await response.json();
+                console.log('[INFO] API Response:', data);
+
                 if (data.ret_code === 0) {
                     // Выводим баланс на страницу
                     const balance = data.result.USDT.available_balance; // Пример для USDT
+                    console.log('[INFO] Balance:', balance);
                     document.getElementById('balance').textContent = `Баланс: ${balance} USDT`;
                 } else {
+                    console.error('[ERROR] API Error:', data);
                     document.getElementById('balance').textContent = 'Ошибка при получении данных';
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
+                console.error('[ERROR] Failed to fetch balance:', error);
                 document.getElementById('balance').textContent = 'Не удалось подключиться к API';
             }
         }
@@ -59,7 +67,10 @@
         }
 
         // Вызываем функцию для получения баланса при загрузке страницы
-        window.onload = getBalance;
+        window.onload = function() {
+            console.log('[INFO] Page loaded. Fetching balance...');
+            getBalance();
+        };
     </script>
 </body>
 </html>
