@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Баланс на Bybit</title>
+    <!-- Подключаем библиотеку CryptoJS через CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.js"></script>
+</head>
+<body>
+    <h1>Ваш баланс:</h1>
+    <div id="balance">Загрузка...</div>
+
+    <script>
+        const apiKey = 'jtXVuk9oe1IVaPZZW1'; // Замените на ваш API ключ
+        const apiSecret = 'mUH7zO960MhElLVnP3XB30qL7Rw0YubM34LH'; // Замените на ваш секрет
+
+        // Функция для получения баланса с API Bybit
+        async function getBalance() {
+            const url = 'https://api.bybit.com/v2/private/wallet/balance'; // URL для получения баланса
+
+            // Время запроса для подписи
+            const timestamp = Math.floor(Date.now() / 1000);
+            
+            // Формируем параметры запроса
+            const params = `api_key=${apiKey}&timestamp=${timestamp}`;
+            
+            // Генерация подписи с использованием CryptoJS (HMAC-SHA256)
+            const sign = generateSignature(params, apiSecret);
+
+            // Сформированный URL запроса
+            const requestUrl = `${url}?${params}&sign=${sign}`;
+
+            try {
+                const response = await fetch(requestUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+                if (data.ret_code === 0) {
+                    // Выводим баланс на страницу
+                    const balance = data.result.USDT.available_balance; // Пример для USDT
+                    document.getElementById('balance').textContent = `Баланс: ${balance} USDT`;
+                } else {
+                    document.getElementById('balance').textContent = 'Ошибка при получении данных';
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('balance').textContent = 'Не удалось подключиться к API';
+            }
+        }
+
+        // Функция для генерации подписи (HMAC-SHA256) с использованием CryptoJS
+        function generateSignature(params, secret) {
+            return CryptoJS.HmacSHA256(params, secret).toString(CryptoJS.enc.Hex);
+        }
+
+        // Вызываем функцию для получения баланса при загрузке страницы
+        window.onload = getBalance;
+    </script>
+</body>
+</html>
